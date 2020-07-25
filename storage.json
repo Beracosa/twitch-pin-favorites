@@ -1,0 +1,9 @@
+{
+  "name":  "Twitch Pin Favorites",
+  "description": "ignored",
+  "type": "storage",
+  "data": {
+    "favs": [],
+	"delay": 7.5
+  }
+}

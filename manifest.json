@@ -1,0 +1,35 @@
+{
+
+  "manifest_version": 2,
+  "name": "Twitch Pin Favorites",
+  "version": "1.0",
+
+  "description": "Pin your favorite Twitch channels to the top of the navigation bar so you can easily see when they're live at a glance.",
+
+  "icons": {
+    "48": "icons/icon-48.png"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*://www.twitch.tv/*"],
+      "js": ["pin-favs.js", "purify.min.js"]
+    }
+  ],
+  
+  "options_ui": {
+    "page": "options.html",
+    "browser_style": true
+  },
+  
+  "permissions": [
+	"storage"
+  ],
+  
+  "browser_specific_settings": {
+	"gecko": {
+		"id": "{3b27a5de-c124-42ef-81a8-b265c2be9212}"
+		}
+	}
+
+}
