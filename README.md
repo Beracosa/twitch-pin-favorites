@@ -21,6 +21,10 @@ Go to the add-on's options page and enter in the channel names, then refresh Twi
 
 Go to `about:debugging#/runtime/this-firefox` and load as temporary add-on.
 
+### Libraries
+
+[DOMPurify 2.0.12](https://github.com/cure53/DOMPurify/blob/2.0.12/dist/purify.min.js) to sanitize HTML inputs.
+
 ## Todo
 
 - [x] Reduce cpu cycles
