@@ -7,9 +7,7 @@ This bypasses the default order sorted by viewcount so your favorite smaller cha
 
 ## Install
 
-Firefox
-
-In review
+[Firefox](https://addons.mozilla.org/en-US/firefox/addon/twitch-pin-favorites/)
 
 ## Usage
 
