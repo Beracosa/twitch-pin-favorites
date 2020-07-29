@@ -1,8 +1,8 @@
-const navBarList = document.getElementsByClassName('tw-relative tw-transition-group')[0];
-const showMoreBtn = document.getElementsByClassName('tw-interactive tw-link tw-link--button')[0];
 const innerClassName = "tw-c-text-alt tw-ellipsis tw-ellipsis tw-flex-grow-1 tw-font-size-5 tw-line-height-heading tw-semibold";
 const debugMode = false;    // Set false for production. Set true for debugging
 const star = '⭐';           // Emoji for a star to be displayed next to a pinned channel
+let navBarList = null;      // Followed channels navigation bar where each child is a channel
+let showMoreBtn = null;     // The 'Show More' button which expands the followed channels list
 let lastChangeTime = "0";   // Last time pinFavs() was called in format '21:15' 
 let starred = new Set();    // Currently pinned channels
 
@@ -21,20 +21,31 @@ function main(){
 			logd("Starting with delay: " + delay + " secs");
 		}
 		
-		// Expand navidation bar
-		setTimeout(function(){
+		// Expand navigation bar
+		setTimeout(function(){			
+			init();
 			expand(navBarList, showMoreBtn);
+		
+			// Once nav bar is expanded, initialize main script
+			setTimeout(function(){
+				setup_observer();
+			}, 2000);
+			
 		}, delay * 1000);
 
-		// Once nav bar is expanded, initialize main script
-		setTimeout(function(){
-			init();
-		}, (delay * 1000) + 2500);
 	});
 }
-	
-/* Load initial configuration and run code on detecting change. */
+
+
+/* Search and store key elements. */
 function init(){
+	navBarList = document.getElementsByClassName('tw-relative tw-transition-group')[0];
+	showMoreBtn = document.getElementsByClassName('tw-interactive tw-link tw-link--button')[0];
+}
+
+
+/* Load initial configuration and run code on detecting change. */
+function setup_observer(){
 
 	let favs = new Set();
 
@@ -50,8 +61,11 @@ function init(){
 		// ie) channels go live, viewcount changes, category changes, etc
 		const config = { attributes: true, childList: true, subtree: true };
 		const observer = new MutationObserver(onFollowersUpdated);
-		observer.observe(navBarList.lastChild, config);
-
+		observer.observe(navBarList, config);
+		
+		if(debugMode){
+			logd("Observer setup and waiting for changes to the DOM");
+		}
 	});
 }
 
@@ -156,7 +170,6 @@ function getChannel(channelName){
 
 /* Expands the navigation bar to show every live channel. */
 function expand(lst, btn){
-	
 	// Loop will in worst case break after expanding every following channel or 20 iterations
 	const maximumLoops = 20;
 	let curLoop = 0;
@@ -164,9 +177,9 @@ function expand(lst, btn){
 
 	while(true){
 		curLoop++;
-		const liveMap = getAllLive(lst);
-		const numLiveChannels = Object.keys(liveMap).length;
-			
+		const res = getAllLive(lst);
+		const numLiveChannels = Object.keys(res).length;	
+
 		if(numLiveChannels === prevLiveCount || curLoop === maximumLoops){
 			break;
 		}
@@ -180,7 +193,7 @@ function expand(lst, btn){
 function getAllLive(navBarList){
 	
 	const liveMap = {};
-	const lines = navBarList.lastChild.innerText.split('\n');	
+	const lines = navBarList.innerText.split('\n');	
 	let channelStatus = [];
 	
 	// Parse channels. Every 6 lines should be a complete channelStatus, but somtimes it's
@@ -190,6 +203,7 @@ function getAllLive(navBarList){
 	// channelStatus[2] = viewcount
 	for(let i = 0; i < lines.length; i++){		
 		const line = lines[i];		
+		
 		if(line != ''){
 			channelStatus.push(lines[i]);
 			if(isViewCount(line)){
@@ -198,6 +212,7 @@ function getAllLive(navBarList){
 				if(channelViewCount.slice(-1) == 'K'){
 					channelViewCount = kToInt(channelViewCount);
 				}
+
 				liveMap[channelName] = channelViewCount;
 				channelStatus = [];
 			}
@@ -240,6 +255,9 @@ function isFloat(n) {
 
 /* Logs to console with a timestamp. Use 'OUTPUT' to filter out other messages. */
 function logd(s){
+	if(!debugMode){
+		return;
+	}
 	var date = new Date();
 	var dt = date.toLocaleString();
 	console.log(dt + " OUTPUT: " + s);
