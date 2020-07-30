@@ -1,11 +1,16 @@
 const innerClassName = "tw-c-text-alt tw-ellipsis tw-ellipsis tw-flex-grow-1 tw-font-size-5 tw-line-height-heading tw-semibold";
-const debugMode = true;    // Set false for production. Set true for debugging
+const debugMode = false;    // Set false for production. Set true for debugging
 const star = '⭐';           // Emoji for a star to be displayed next to a pinned channel
+const config = {            // Configuration of observer
+	attributes: true, 
+	childList: true, 
+	subtree: true 
+};
 let navBarList = null;      // Followed channels navigation bar where each child is a channel
 let showMoreBtn = null;     // The 'Show More' button which expands the followed channels list
 let lastChangeTime = "0";   // Last time pinFavs() was called in format '21:15' 
 let starred = new Set();    // Currently pinned channels
-
+let observer = null;        // Observer that detects change in followers list, ie viewcount change
 
 main(); // Entry point
 
@@ -59,8 +64,7 @@ function setup_observer(){
 
 		// Create an observer to update when changes occur in the follower list
 		// ie) channels go live, viewcount changes, category changes, etc
-		const config = { attributes: true, childList: true, subtree: true };
-		const observer = new MutationObserver(onFollowersUpdated);
+		observer = new MutationObserver(onFollowersUpdated);
 		observer.observe(navBarList, config);
 		
 		if(debugMode){
@@ -71,38 +75,33 @@ function setup_observer(){
 
 
 /* Callback function to update pinned channels */
-const onFollowersUpdated = function(mutationsList, observer) {
-	// Only update pinFavs() once a minute, since this will be called 
-	// many times for a single change in the follower list.
-	var date = new Date();
-	var dt = date.getHours() + ":" + date.getMinutes();
-	if(debugMode){
-		if(lastChangeTime !== dt){
-			logd("Changes in DOM detected. Updating ...");
-		} else {
-			logd("Changes in DOM detected. Already updating recent. Update next minute.");
-		}	
-	}
-	if(lastChangeTime !== dt){
-		let favs = new Set();
-		// Fetch from persistance onload
-		var gettingItem = browser.storage.sync.get('favs');
-		gettingItem.then((res) => {
-			for(var i = 0; i < res.favs.length; i++){
-				favs.add(res.favs[i].toLowerCase());
-			}
-			if(debugMode){
-				logd("Updating pinned channels");
-			}
-			pinFavs(favs);
-			lastChangeTime = dt;
-		});
-	}
+const onFollowersUpdated = function(mutationsList) {
+
+	observer.disconnect();
+	let favs = new Set();
+	// Fetch from persistance onload
+	var gettingItem = browser.storage.sync.get('favs');
+	gettingItem.then((res) => {
+		for(var i = 0; i < res.favs.length; i++){
+			favs.add(res.favs[i].toLowerCase());
+		}
+		if(debugMode){
+			logd("Updating pinned channels");
+		}
+		pinFavs(favs);
+		// Connect observer after a few seconds to prevent being called too many times
+		setTimeout(function(){
+			observer.observe(navBarList, config);
+		}, 10000);
+		
+	});
 };
 
 
 /* Pins the list of favorites from config to top of nav bar. */
 function pinFavs(favs){
+	
+	let s = ""; // debug string
 
 	const map = getAllLive(navBarList);
 	
@@ -121,11 +120,11 @@ function pinFavs(favs){
 	});
 	
 	if(debugMode){
-		let s = "";
 		for(let item of starred){
 			s += item + " | "
 		}
 		logd("Currently pinned channel: " + s);
+		s = "";
 	}
 	
 	// Remove pinned channels so they can be updated
@@ -133,8 +132,13 @@ function pinFavs(favs){
 		const node = getChannel(item); // Gets only the first node, which is pinned
 		node.remove();
 		if(debugMode){
-			logd("Channel removed from pinned: " + item);
+			s += item + " | "
 		}
+	}
+	
+	if(debugMode){
+		logd("Channels removed from pinned: " + s);
+		s = "";
 	}
 	
 	starred.clear();
@@ -152,10 +156,15 @@ function pinFavs(favs){
 		}
 		starred.add(channelName);
 		if(debugMode){
-			logd("channel added to pinned: " + channelName);
+			s += channelName + " | "		
 		}		
 		navBarList.insertBefore(cloned, navBarList.firstChild);
 	}
+	
+	if(debugMode){
+		logd("Channels added to pinned: " + s);
+	}
+
 }
 
 
