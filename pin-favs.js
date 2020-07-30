@@ -1,5 +1,5 @@
 const innerClassName = "tw-c-text-alt tw-ellipsis tw-ellipsis tw-flex-grow-1 tw-font-size-5 tw-line-height-heading tw-semibold";
-const debugMode = false;    // Set false for production. Set true for debugging
+const debugMode = true;    // Set false for production. Set true for debugging
 const star = '⭐';           // Emoji for a star to be displayed next to a pinned channel
 let navBarList = null;      // Followed channels navigation bar where each child is a channel
 let showMoreBtn = null;     // The 'Show More' button which expands the followed channels list
@@ -76,6 +76,13 @@ const onFollowersUpdated = function(mutationsList, observer) {
 	// many times for a single change in the follower list.
 	var date = new Date();
 	var dt = date.getHours() + ":" + date.getMinutes();
+	if(debugMode){
+		if(lastChangeTime !== dt){
+			logd("Changes in DOM detected. Updating ...");
+		} else {
+			logd("Changes in DOM detected. Already updating recent. Update next minute.");
+		}	
+	}
 	if(lastChangeTime !== dt){
 		let favs = new Set();
 		// Fetch from persistance onload
@@ -88,9 +95,9 @@ const onFollowersUpdated = function(mutationsList, observer) {
 				logd("Updating pinned channels");
 			}
 			pinFavs(favs);
+			lastChangeTime = dt;
 		});
 	}
-	lastChangeTime = dt;
 };
 
 
