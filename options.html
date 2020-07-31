@@ -9,15 +9,23 @@
 <body>
 	<form>
 		
-		<p>Seconds to wait before script is run. Set this higher if you have a slower browser and the extension is not working.</p>
+		<p>Seconds to wait before trying to pin channels. Set this higher if you have a slower browser and the extension is not working.</p>
 		<label>Delay: &nbsp; &nbsp;</label><input id="delayInput" type="number" step="0.1" id="delayInput" >
 		<button id="delayBtn" type="submit">Save</button>
 		
 		
-		<p>Channels entered here will be pinned to the top of the navigation bar.</p>
+		<p>Channels entered here will be pinned to the top of the navigation bar. Optionally, backup or restore a channels list.</p>
 		<label>Add Channel: &nbsp; &nbsp;</label>
-		<input type="text" id="channelInput" >
+		<input type="text" id="channelInput">
 		<button id="channelBtn" type="submit">Add</button>
+		
+		
+		<input type="file" id="restore" accept="application/JSON" style="display:none;">
+		
+		<button id="importBtn" type="submit">Import</button>
+		<button id="exportBtn" type="submit">Export</button>
+		
+		
 	</form>
 	<br><br>
 	

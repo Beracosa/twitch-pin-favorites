@@ -1,5 +1,5 @@
 const innerClassName = "tw-c-text-alt tw-ellipsis tw-ellipsis tw-flex-grow-1 tw-font-size-5 tw-line-height-heading tw-semibold";
-const debugMode = false;    // Set false for production. Set true for debugging
+const debugMode = true;    // Set false for production. Set true for debugging
 const star = '⭐';           // Emoji for a star to be displayed next to a pinned channel
 const config = {            // Configuration of observer
 	attributes: true, 
