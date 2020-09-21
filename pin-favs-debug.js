@@ -17,6 +17,9 @@ function main(){
 		
 		/* Wait for page to load. DOM needs to be full loaded before script is executed */
 		const delay = res.delay || 7.5;
+		if(debugMode){
+			logd("Starting with delay: " + delay + " secs");
+		}
 		
 		// Expand navigation bar
 		setTimeout(function(){			
@@ -59,6 +62,10 @@ function setup_observer(){
 		const config = { attributes: true, childList: true, subtree: true };
 		const observer = new MutationObserver(onFollowersUpdated);
 		observer.observe(navBarList, config);
+		
+		if(debugMode){
+			logd("Observer setup and waiting for changes to the DOM");
+		}
 	});
 }
 
@@ -69,7 +76,13 @@ const onFollowersUpdated = function(mutationsList, observer) {
 	// many times for a single change in the follower list.
 	var date = new Date();
 	var dt = date.getHours() + ":" + date.getMinutes();
-
+	if(debugMode){
+		if(lastChangeTime !== dt){
+			logd("Changes in DOM detected. Updating ...");
+		} else {
+			logd("Changes in DOM detected. Already updating recent. Update next minute.");
+		}	
+	}
 	if(lastChangeTime !== dt){
 		let favs = new Set();
 		// Fetch from persistance onload
@@ -78,7 +91,9 @@ const onFollowersUpdated = function(mutationsList, observer) {
 			for(var i = 0; i < res.favs.length; i++){
 				favs.add(res.favs[i].toLowerCase());
 			}
-
+			if(debugMode){
+				logd("Updating pinned channels");
+			}
 			pinFavs(favs);
 			lastChangeTime = dt;
 		});
@@ -105,10 +120,21 @@ function pinFavs(favs){
 		return a[1] - b[1];
 	});
 	
+	if(debugMode){
+		let s = "";
+		for(let item of starred){
+			s += item + " | "
+		}
+		logd("Currently pinned channel: " + s);
+	}
+	
 	// Remove pinned channels so they can be updated
 	for(let item of starred){
 		const node = getChannel(item); // Gets only the first node, which is pinned
 		node.remove();
+		if(debugMode){
+			logd("Channel removed from pinned: " + item);
+		}
 	}
 	
 	starred.clear();
@@ -124,7 +150,10 @@ function pinFavs(favs){
 		if(!displayName.includes(star)){
 			cloned.getElementsByClassName(innerClassName)[0].innerHTML = addStar(displayName);
 		}
-		starred.add(channelName);		
+		starred.add(channelName);
+		if(debugMode){
+			logd("channel added to pinned: " + channelName);
+		}		
 		navBarList.insertBefore(cloned, navBarList.firstChild);
 	}
 }
@@ -229,4 +258,12 @@ function isViewCount(str){
 function isFloat(n) {
     const str = String(n).trim();
 	return !str ? NaN : Number(str);
+}
+
+
+/* Logs to console with a timestamp. Use 'OUTPUT' to filter out other messages. */
+function logd(s){
+	var date = new Date();
+	var dt = date.toLocaleString();
+	console.log(dt + " OUTPUT: " + s);
 }
