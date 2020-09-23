@@ -5,7 +5,7 @@ let navBarList = null;          // Followed channels navigation bar where each c
 let showMoreBtn = null;         // The 'Show More' button which expands the followed channels list
 let lastChangeTime = "0";       // Last time pinFavs() was called in format '21:15' 
 let starred = new Set();        // Currently pinned channels
-let re = /^\d new video[s]?$/;  // Regular expression for when channel is offline but has videos
+let re = /^\d+ new video[s]?$/;  // Regular expression for when channel is offline but has videos
 
 main(); // Entry point
 
