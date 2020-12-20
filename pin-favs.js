@@ -18,8 +18,7 @@ function main(){
 	gettingDelay.then((res) => {
 		
 		/* Wait for page to load. DOM needs to be full loaded before script is executed */
-		//const delay = res.delay || 7.5;
-		const delay = 1;
+		const delay = res.delay || 7;
 		
 		// Expand navigation bar
 		setTimeout(function(){			
