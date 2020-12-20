@@ -1,4 +1,6 @@
 const innerClassName = "tw-c-text-alt tw-ellipsis tw-ellipsis tw-flex-grow-1 tw-font-size-5 tw-line-height-heading tw-semibold";
+const navBarListClassName = "tw-relative tw-transition-group";
+const showMoreBtnClassName = "tw-link tw-link--button";
 const debugMode = false;        // Set false for production. Set true for debugging
 const star = '⭐';               // Emoji for a star to be displayed next to a pinned channel
 let navBarList = null;          // Followed channels navigation bar where each child is a channel
@@ -16,7 +18,8 @@ function main(){
 	gettingDelay.then((res) => {
 		
 		/* Wait for page to load. DOM needs to be full loaded before script is executed */
-		const delay = res.delay || 7.5;
+		//const delay = res.delay || 7.5;
+		const delay = 1;
 		
 		// Expand navigation bar
 		setTimeout(function(){			
@@ -36,8 +39,19 @@ function main(){
 
 /* Search and store key elements. */
 function init(){
-	navBarList = document.getElementsByClassName('tw-relative tw-transition-group')[0];
-	showMoreBtn = document.getElementsByClassName('tw-interactive tw-link tw-link--button')[0];
+	navBarList = document.getElementsByClassName(navBarListClassName)[0];
+	showMoreBtn = document.getElementsByClassName(showMoreBtnClassName)[0];
+}
+
+
+/* Unpins all starred channels. */
+function unpinAllChannels(){
+	// Remove pinned channels so they can be updated
+	for(let item of starred){
+		const node = getChannel(item); // Gets only the first node, which is pinned
+		node.remove();
+	}
+	starred.clear();
 }
 
 
@@ -105,13 +119,7 @@ function pinFavs(favs){
 		return a[1] - b[1];
 	});
 	
-	// Remove pinned channels so they can be updated
-	for(let item of starred){
-		const node = getChannel(item); // Gets only the first node, which is pinned
-		node.remove();
-	}
-	
-	starred.clear();
+	unpinAllChannels();
 
 	// Pin channels to top by deep cloning
 	for(let i = 0; i < pinned.length; i++) {
@@ -120,6 +128,7 @@ function pinFavs(favs){
 		const node = getChannel(channelName);	
 
 		let cloned = node.cloneNode([true]); // Clone, DO NOT modify original node as it will cause syncing issues
+
 		let displayName = cloned.getElementsByClassName(innerClassName)[0].innerHTML;
 		if(!displayName.includes(star)){
 			cloned.getElementsByClassName(innerClassName)[0].innerHTML = addStar(displayName);
@@ -229,4 +238,12 @@ function isViewCount(str){
 function isFloat(n) {
     const str = String(n).trim();
 	return !str ? NaN : Number(str);
+}
+
+
+/* Logs to console with a timestamp. Use 'OUTPUT' to filter out other messages. */
+function logd(s){
+	var date = new Date();
+	var dt = date.toLocaleString();
+	console.log(dt + " OUTPUT: " + s);
 }
