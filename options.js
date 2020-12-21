@@ -45,7 +45,7 @@ function restoreOptions() {
 	
 	const gettingDelay = browser.storage.sync.get('delay');
 	gettingDelay.then((res) => {
-		const delay = res.delay || 7.5;
+		const delay = res.delay || 7;
 		document.querySelector("#delayInput").value = delay;
 	});
 	
@@ -70,6 +70,7 @@ function addRow(channel) {
 
 	// Button removes the channel from persistance when clicked
 	const btn = document.createElement("button");
+	btn.className = "browser-style";
 	const t = document.createTextNode("X");
 	btn.appendChild(t);       
 	btn.addEventListener("click", function(){
