@@ -1,19 +1,26 @@
-const innerClassName = "tw-c-text-alt tw-ellipsis tw-ellipsis tw-flex-grow-1 tw-font-size-5 tw-line-height-heading tw-semibold";
-const navBarListClassName = "tw-relative tw-transition-group";
-const showMoreBtnClassName = "tw-link tw-link--button";
-const debugMode = false;        // Set false for production. Set true for debugging
-const star = '⭐';               // Emoji for a star to be displayed next to a pinned channel
+const CHANNEL_NAME_CLASS = "tw-c-text-alt tw-ellipsis tw-ellipsis tw-flex-grow-1 tw-font-size-5 tw-line-height-heading tw-semibold";
+const NAVBAR_LIST_CLASS = "tw-relative tw-transition-group";
+const SHOW_MORE_BTN_CLASS = "tw-link tw-link--button";
+const RERUN_CLASS = "ScFigure-sc-1j5mt50-0 laJGEQ tw-svg";
+const DEBUGMODE = false;        // Set false for production. Set true for debugging
+const STAR = '⭐';               // Emoji for a star to be displayed next to a pinned channel
 let navBarList = null;          // Followed channels navigation bar where each child is a channel
 let showMoreBtn = null;         // The 'Show More' button which expands the followed channels list
 let lastChangeTime = "0";       // Last time pinFavs() was called in format '21:15' 
 let starred = new Set();        // Currently pinned channels
-let re = /^\d+ new video[s]?$/;  // Regular expression for when channel is offline but has videos
+let re = /^\d+ new video[s]?$/; // Regular expression for when channel is offline but has videos
+let showReruns = false;         // Whether to include reruns or strictly live channels as part of the results
 
 main(); // Entry point
 
 
 function main(){
-		
+	
+	const gettingRerun = browser.storage.sync.get('showReruns');
+	gettingRerun.then((res) => {
+		showReruns = res.showReruns || false;
+	});
+	
 	var gettingDelay = browser.storage.sync.get('delay');
 	gettingDelay.then((res) => {
 		
@@ -38,8 +45,8 @@ function main(){
 
 /* Search and store key elements. */
 function init(){
-	navBarList = document.getElementsByClassName(navBarListClassName)[0];
-	showMoreBtn = document.getElementsByClassName(showMoreBtnClassName)[0];
+	navBarList = document.getElementsByClassName(NAVBAR_LIST_CLASS)[0];
+	showMoreBtn = document.getElementsByClassName(SHOW_MORE_BTN_CLASS)[0];
 }
 
 
@@ -105,11 +112,17 @@ function pinFavs(favs){
 	const map = getAllLive(navBarList);
 	
 	var pinned = [];
-
+	
 	for (const [key, value] of Object.entries(map)) {
 		const channelName = key.toLowerCase();
 		if(favs.has(channelName)){
-			pinned.push([channelName, value]);
+			if(showReruns){
+				pinned.push([channelName, value]);
+			} else {
+				if(isChannelLive(channelName)){
+					pinned.push([channelName, value]);
+				}
+			}			
 		}
 	}
 
@@ -124,13 +137,13 @@ function pinFavs(favs){
 	for(let i = 0; i < pinned.length; i++) {
 		
 		const channelName = pinned[i][0];
-		const node = getChannel(channelName);	
+		const node = getChannel(channelName);
 
 		let cloned = node.cloneNode([true]); // Clone, DO NOT modify original node as it will cause syncing issues
 
-		let displayName = cloned.getElementsByClassName(innerClassName)[0].innerHTML;
-		if(!displayName.includes(star)){
-			cloned.getElementsByClassName(innerClassName)[0].innerHTML = addStar(displayName);
+		let displayName = cloned.getElementsByClassName(CHANNEL_NAME_CLASS)[0].innerHTML;
+		if(!displayName.includes(STAR)){
+			cloned.getElementsByClassName(CHANNEL_NAME_CLASS)[0].innerHTML = addStar(displayName);
 		}
 		starred.add(channelName);		
 		navBarList.insertBefore(cloned, navBarList.firstChild);
@@ -140,17 +153,32 @@ function pinFavs(favs){
 
 /* Adds a star emoji in front of a string. */
 function addStar(str){
-	const cleanHTML = DOMPurify.sanitize(star + " " + str);
+	const cleanHTML = DOMPurify.sanitize(STAR + " " + str);
 	return cleanHTML;
 }
 
 
-/* Retrives a node in the DOM given the channel name.*/
+/* Retrives a node in the DOM given the channel name. */
 function getChannel(channelName){
 	const href = "a[href='/" + channelName + "']";
 	var els = document.querySelectorAll(href);
 	var node = els[0].parentNode.parentNode.parentNode;
+
 	return node;
+}
+
+/* Returns true if a channel is live, false if it is a rerun. */
+function isChannelLive(channelName){
+	const href = "a[href='/" + channelName + "']";
+	var els = document.querySelectorAll(href);
+
+	// Channel is rerun
+	if(els[0].childNodes[1].childNodes[1].childNodes[0].childNodes[0].className === RERUN_CLASS){
+		return false;
+	}	
+	
+	// Channel is live
+	return true;
 }
 
 
@@ -193,7 +221,7 @@ function getAllLive(navBarList){
 		if(line != ''){
 			channelStatus.push(lines[i]);
 			if(isViewCount(line)){
-				const channelName = channelStatus[0].replace(star, '').replace(' ', '');
+				const channelName = channelStatus[0].replace(STAR, '').replace(' ', '');
 				let channelViewCount = channelStatus[channelStatus.length - 1];
 				if(channelViewCount.slice(-1) == 'K'){
 					channelViewCount = kToInt(channelViewCount);

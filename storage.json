@@ -4,6 +4,7 @@
   "type": "storage",
   "data": {
     "favs": [],
-	"delay": 7.5
+	"delay": 7,
+	"showReruns": false
   }
 }

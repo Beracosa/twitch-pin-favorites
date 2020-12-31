@@ -43,6 +43,12 @@ function restoreOptions() {
 	const table = document.getElementById("favsTable");
 	table.innerHTML = "";
 	
+	const gettingRerun = browser.storage.sync.get('showReruns');
+	gettingRerun.then((res) => {
+		const bool = res.showReruns || false;
+		document.querySelector("#rerun").checked = bool;
+	});
+	
 	const gettingDelay = browser.storage.sync.get('delay');
 	gettingDelay.then((res) => {
 		const delay = res.delay || 7;
@@ -173,6 +179,14 @@ function exportFile(e){
 	e.preventDefault();
 }
 
+/* Saves whether to show reruns or not to storage */
+function checkRerun(){
+	const rerunCheckbox = document.getElementById('rerun');
+	const settingItem = browser.storage.sync.set({
+		showReruns: rerunCheckbox.checked
+	});	
+}
+
 
 document.addEventListener('DOMContentLoaded', restoreOptions);
 document.getElementById("channelBtn").addEventListener("click", updateRow);
@@ -181,3 +195,4 @@ const inputElement = document.getElementById("restore");
 inputElement.addEventListener("change", importFile, false);
 document.getElementById("importBtn").addEventListener("click", openSelectFileDialogue);
 document.getElementById("exportBtn").addEventListener("click", exportFile);
+document.getElementById("rerun").addEventListener("click", checkRerun);
