@@ -1,6 +1,6 @@
 const CHANNEL_NAME_CLASS = "tw-c-text-alt tw-ellipsis tw-ellipsis tw-flex-grow-1 tw-font-size-5 tw-line-height-heading tw-semibold";
 const NAVBAR_LIST_CLASS = "tw-relative tw-transition-group";
-const SHOW_MORE_BTN_CLASS = "tw-link tw-link--button";
+const SHOW_MORE_BTN_CLASS = "ScCoreLink-udwpw5-0 fOmFQF tw-link";
 const RERUN_CLASS = "ScFigure-sc-1j5mt50-0 laJGEQ tw-svg";
 const DEBUGMODE = false;        // Set false for production. Set true for debugging
 const STAR = '⭐';               // Emoji for a star to be displayed next to a pinned channel
