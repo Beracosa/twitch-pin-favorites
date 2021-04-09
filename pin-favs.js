@@ -140,6 +140,12 @@ function pinFavs(favs){
 		const node = getChannel(channelName);
 
 		let cloned = node.cloneNode([true]); // Clone, DO NOT modify original node as it will cause syncing issues
+		
+		// Override onclick so only stream portion refreshes
+		cloned.addEventListener("click", function(event) {
+			node.childNodes[0].childNodes[0].childNodes[0].click();
+			event.preventDefault();
+		}, true);
 
 		let displayName = cloned.getElementsByClassName(CHANNEL_NAME_CLASS)[0].innerHTML;
 		if(!displayName.includes(STAR)){
