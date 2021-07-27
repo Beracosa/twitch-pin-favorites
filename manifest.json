@@ -2,7 +2,7 @@
 
   "manifest_version": 2,
   "name": "Twitch Pin Favorites",
-  "version": "1.4",
+  "version": "1.4.2",
 
   "description": "Pin your favorite Twitch channels to the top of the navigation bar so you can easily see when they're live at a glance.",
 
