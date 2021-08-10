@@ -1,6 +1,6 @@
-const CHANNEL_NAME_CLASS = "sc-AxgMl hhDlEz hevbvm sc-AxheI";
-const NAVBAR_LIST_CLASS = "YTIJI sc-AxheI tw-transition-group";
-const SHOW_MORE_BTN_CLASS = "sc-fznMAR dDZiRh tw-link";
+const CHANNEL_NAME_CLASS = "CoreText-sc-cpl358-0 cTGYGP InjectLayout-sc-588ddc-0 ispdkM";
+const NAVBAR_LIST_CLASS = "InjectLayout-sc-588ddc-0 igUkRe tw-transition-group";
+const SHOW_MORE_BTN_CLASS = "ScCoreLink-sc-udwpw5-0 bEYrhe tw-link";
 const RERUN_CLASS = "ScFigure-sc-1j5mt50-0 laJGEQ tw-svg";
 const DEBUGMODE = false;        // Set false for production. Set true for debugging
 const STAR = '⭐';               // Emoji for a star to be displayed next to a pinned channel
