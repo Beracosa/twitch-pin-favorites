@@ -1,8 +1,8 @@
-const CHANNEL_NAME_CLASS = "CoreText-sc-cpl358-0 cTGYGP InjectLayout-sc-588ddc-0 ispdkM";
-const NAVBAR_LIST_CLASS = "InjectLayout-sc-588ddc-0 igUkRe tw-transition-group";
-const SHOW_MORE_BTN_CLASS = "ScCoreLink-sc-udwpw5-0 bEYrhe tw-link";
+const OBSERVER_CLASS = "sideNav";
+const CHANNEL_NAME_CLASS = "CoreText-sc-cpl358-0 hSTXRs InjectLayout-sc-588ddc-0 ecXQMX";
+const NAVBAR_LIST_CLASS = "InjectLayout-sc-588ddc-0 dBaosp tw-transition-group";
+const SHOW_MORE_BTN_CLASS = "ScCoreLink-sc-udwpw5-0 eBPxOh tw-link";
 const RERUN_CLASS = "ScFigure-sc-1j5mt50-0 laJGEQ tw-svg";
-const DEBUGMODE = false;        // Set false for production. Set true for debugging
 const STAR = '⭐';               // Emoji for a star to be displayed next to a pinned channel
 let navBarList = null;          // Followed channels navigation bar where each child is a channel
 let showMoreBtn = null;         // The 'Show More' button which expands the followed channels list
@@ -10,6 +10,7 @@ let lastChangeTime = "0";       // Last time pinFavs() was called in format '21:
 let starred = new Set();        // Currently pinned channels
 let re = /^\d+ new video[s]?$/; // Regular expression for when channel is offline but has videos
 let showReruns = false;         // Whether to include reruns or strictly live channels as part of the results
+let observer = null;            // Observer to detect change in navbar
 
 main(); // Entry point
 
@@ -21,25 +22,42 @@ function main(){
 		showReruns = res.showReruns || false;
 	});
 	
-	var gettingDelay = browser.storage.sync.get('delay');
+	const gettingDelay = browser.storage.sync.get('delay');
 	gettingDelay.then((res) => {
-		
+
 		/* Wait for page to load. DOM needs to be full loaded before script is executed */
 		const delay = res.delay || 7;
 		
 		// Expand navigation bar
 		setTimeout(function(){			
-			init();
-			expand(navBarList, showMoreBtn);
-		
-			// Once nav bar is expanded, initialize main script
-			setTimeout(function(){
-				setup_observer();
-			}, 2000);
+			start();
+
+			// After some period of time, the followed channels navbar breaks. As a workaround, restart the script
+			// if we detect it's not expanded
+			setInterval(function(){
+				if (!isExpanded()) {
+					start();
+				}
+			}, 60000);
 			
 		}, delay * 1000);
 
 	});
+}
+
+
+function start(){
+	init();
+	starred.clear();
+	expand(navBarList, showMoreBtn);
+	if (observer !== null) {
+		observer.disconnect();
+	}
+
+	// Once nav bar is expanded, initialize main script
+	setTimeout(function(){
+		setupObserver();
+	}, 2000);
 }
 
 
@@ -55,30 +73,33 @@ function unpinAllChannels(){
 	// Remove pinned channels so they can be updated
 	for(let item of starred){
 		const node = getChannel(item); // Gets only the first node, which is pinned
-		node.remove();
+		if (node !== null) {
+			node.remove();
+		}
 	}
 	starred.clear();
 }
 
 
 /* Load initial configuration and run code on detecting change. */
-function setup_observer(){
+function setupObserver(){
 
 	let favs = new Set();
 
 	// Fetch from persistance onload
-	var gettingItem = browser.storage.sync.get('favs');
+	const gettingItem = browser.storage.sync.get('favs');
 	gettingItem.then((res) => {
-		for(var i = 0; i < res.favs.length; i++){
+		for(let i = 0; i < res.favs.length; i++){
 			favs.add(res.favs[i].toLowerCase());
 		}
 		pinFavs(favs);		
 
 		// Create an observer to update when changes occur in the follower list
-		// ie) channels go live, viewcount changes, category changes, etc
+		// ie) channels go live, view count changes, category changes, etc
 		const config = { attributes: true, childList: true, subtree: true };
-		const observer = new MutationObserver(onFollowersUpdated);
-		observer.observe(navBarList, config);
+		const observerElement = document.getElementById(OBSERVER_CLASS);
+		observer = new MutationObserver(onFollowersUpdated);
+		observer.observe(observerElement, config);
 	});
 }
 
@@ -87,15 +108,15 @@ function setup_observer(){
 const onFollowersUpdated = function(mutationsList, observer) {
 	// Only update pinFavs() once a minute, since this will be called 
 	// many times for a single change in the follower list.
-	var date = new Date();
-	var dt = date.getHours() + ":" + date.getMinutes();
+	const date = new Date();
+	const dt = date.getHours() + ":" + date.getMinutes();
 
 	if(lastChangeTime !== dt){
 		let favs = new Set();
 		// Fetch from persistance onload
-		var gettingItem = browser.storage.sync.get('favs');
+		const gettingItem = browser.storage.sync.get('favs');
 		gettingItem.then((res) => {
-			for(var i = 0; i < res.favs.length; i++){
+			for(let i = 0; i < res.favs.length; i++){
 				favs.add(res.favs[i].toLowerCase());
 			}
 
@@ -111,7 +132,7 @@ function pinFavs(favs){
 
 	const map = getAllLive(navBarList);
 	
-	var pinned = [];
+	const pinned = [];
 	
 	for (const [key, value] of Object.entries(map)) {
 		const channelName = key.toLowerCase();
@@ -139,44 +160,46 @@ function pinFavs(favs){
 		const channelName = pinned[i][0];
 		const node = getChannel(channelName);
 
-		let cloned = node.cloneNode([true]); // Clone, DO NOT modify original node as it will cause syncing issues
-		
-		// Override onclick so only stream portion refreshes
-		cloned.addEventListener("click", function(event) {
-			node.childNodes[0].childNodes[0].childNodes[0].click();
-			event.preventDefault();
-		}, true);
+		if (node !== null) {
+			let cloned = node.cloneNode(true); // Clone, DO NOT modify original node as it will cause syncing issues
 
-		let displayName = cloned.getElementsByClassName(CHANNEL_NAME_CLASS)[0].innerHTML;
-		if(!displayName.includes(STAR)){
-			cloned.getElementsByClassName(CHANNEL_NAME_CLASS)[0].innerHTML = addStar(displayName);
+			// Override onclick so only stream portion refreshes
+			cloned.addEventListener("click", function(event) {
+				node.childNodes[0].childNodes[0].childNodes[0].click();
+				event.preventDefault();
+			}, true);
+
+			let displayName = cloned.getElementsByClassName(CHANNEL_NAME_CLASS)[0].innerHTML;
+			if(!displayName.includes(STAR)){
+				cloned.getElementsByClassName(CHANNEL_NAME_CLASS)[0].innerHTML = addStar(displayName);
+			}
+			starred.add(channelName);
+			navBarList.insertBefore(cloned, navBarList.firstChild);
 		}
-		starred.add(channelName);		
-		navBarList.insertBefore(cloned, navBarList.firstChild);
 	}
 }
 
 
 /* Adds a star emoji in front of a string. */
 function addStar(str){
-	const cleanHTML = DOMPurify.sanitize(STAR + " " + str);
-	return cleanHTML;
+	return DOMPurify.sanitize(STAR + " " + str);
 }
 
 
-/* Retrives a node in the DOM given the channel name. */
+/* Retrieves a node in the DOM given the channel name. */
 function getChannel(channelName){
 	const href = "a[href='/" + channelName + "']";
-	var els = document.querySelectorAll(href);
-	var node = els[0].parentNode.parentNode.parentNode;
-
-	return node;
+	const els = document.querySelectorAll(href);
+	if (els[0] === undefined) {
+		return null;
+	}
+	return els[0].parentNode.parentNode.parentNode;
 }
 
 /* Returns true if a channel is live, false if it is a rerun. */
 function isChannelLive(channelName){
 	const href = "a[href='/" + channelName + "']";
-	var els = document.querySelectorAll(href);
+	const els = document.querySelectorAll(href);
 
 	// Channel is rerun
 	if(els[0].childNodes[1].childNodes[1].childNodes[0].childNodes[0].className === RERUN_CLASS){
@@ -224,12 +247,12 @@ function getAllLive(navBarList){
 	for(let i = 0; i < lines.length; i++){		
 		const line = lines[i];		
 		
-		if(line != ''){
+		if(line !== ''){
 			channelStatus.push(lines[i]);
 			if(isViewCount(line)){
 				const channelName = channelStatus[0].replace(STAR, '').replace(' ', '');
 				let channelViewCount = channelStatus[channelStatus.length - 1];
-				if(channelViewCount.slice(-1) == 'K'){
+				if(channelViewCount.slice(-1) === 'K'){
 					channelViewCount = kToInt(channelViewCount);
 				}
 				if(!re.test(channelStatus[1])){
@@ -248,9 +271,9 @@ function getAllLive(navBarList){
 function kToInt(channelViewCount){
 	channelViewCount = channelViewCount.slice(0, channelViewCount.length - 1);	
 	channelViewCount = channelViewCount.split(".");
-	if(channelViewCount.length == 1){
+	if(channelViewCount.length === 1){
 		channelViewCount = channelViewCount[0] + "000";
-	} else if(channelViewCount.length == 2){
+	} else if(channelViewCount.length === 2){
 		channelViewCount = channelViewCount[0] + channelViewCount[1] + "00";
 	}
 	return channelViewCount;
@@ -260,7 +283,7 @@ function kToInt(channelViewCount){
 /* Boolean. Checks if a string refers to the viewcount. This is for when category is null. */
 function isViewCount(str){
 	let viewCount = str;
-	if(str.slice(-1) == 'K'){
+	if(str.slice(-1) === 'K'){
 		viewCount = str.slice(0, str.length - 1);
 	}
 	return isFloat(viewCount);
@@ -274,9 +297,15 @@ function isFloat(n) {
 }
 
 
+/* True if navbar is expanded. */
+function isExpanded() {
+	return document.getElementsByClassName(NAVBAR_LIST_CLASS)[0].childNodes.length > 12;
+}
+
+
 /* Logs to console with a timestamp. Use 'OUTPUT' to filter out other messages. */
 function logd(s){
-	var date = new Date();
-	var dt = date.toLocaleString();
+	const date = new Date();
+	const dt = date.toLocaleString();
 	console.log(dt + " OUTPUT: " + s);
 }
