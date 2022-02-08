@@ -1,7 +1,7 @@
 const OBSERVER_CLASS = "sideNav";
-const CHANNEL_NAME_CLASS = "CoreText-sc-cpl358-0 hSTXRs InjectLayout-sc-588ddc-0 ecXQMX";
-const NAVBAR_LIST_CLASS = "InjectLayout-sc-588ddc-0 dBaosp tw-transition-group";
-const SHOW_MORE_BTN_CLASS = "ScCoreLink-sc-udwpw5-0 eBPxOh tw-link";
+const CHANNEL_NAME_CLASS = "CoreText-sc-cpl358-0 fnnwmm InjectLayout-sc-588ddc-0 fTYBwJ";
+const NAVBAR_LIST_CLASS = "InjectLayout-sc-588ddc-0 kSsaPb tw-transition-group";
+const SHOW_MORE_BTN_CLASS = "ScCoreLink-sc-udwpw5-0 gXEWKf tw-link";
 const RERUN_CLASS = "ScFigure-sc-1j5mt50-0 laJGEQ tw-svg";
 const STAR = '⭐';               // Emoji for a star to be displayed next to a pinned channel
 let navBarList = null;          // Followed channels navigation bar where each child is a channel
