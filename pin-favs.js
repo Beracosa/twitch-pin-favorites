@@ -1,4 +1,4 @@
-const OBSERVER_CLASS = "sideNav";
+const OBSERVER_CLASS = "side-nav";
 const CHANNEL_NAME_CLASS = "CoreText-sc-cpl358-0 gYupEs InjectLayout-sc-588ddc-0 emHXNr";
 const NAVBAR_LIST_CLASS = "InjectLayout-sc-588ddc-0 ftYHa-d tw-transition-group";
 const SHOW_MORE_BTN_CLASS = "ScCoreLink-sc-udwpw5-0 gBLUEB tw-link";
@@ -92,7 +92,7 @@ function setupObserver(){
 		for(let i = 0; i < res.favs.length; i++){
 			favs.add(res.favs[i].toLowerCase());
 		}
-		pinFavs(favs);		
+		pinFavs(favs);
 
 		// Create an observer to update when changes occur in the follower list
 		// ie) channels go live, view count changes, category changes, etc
@@ -113,7 +113,7 @@ const onFollowersUpdated = function(mutationsList, observer) {
 
 	if(lastChangeTime !== dt){
 		let favs = new Set();
-		// Fetch from persistance onload
+		// Fetch from persistence onload
 		const gettingItem = browser.storage.sync.get('favs');
 		gettingItem.then((res) => {
 			for(let i = 0; i < res.favs.length; i++){
@@ -131,7 +131,7 @@ const onFollowersUpdated = function(mutationsList, observer) {
 function pinFavs(favs){
 
 	const map = getAllLive(navBarList);
-	
+
 	const pinned = [];
 	
 	for (const [key, value] of Object.entries(map)) {
@@ -151,12 +151,12 @@ function pinFavs(favs){
 	pinned.sort(function(a, b) {
 		return a[1] - b[1];
 	});
-	
+
 	unpinAllChannels();
 
 	// Pin channels to top by deep cloning
 	for(let i = 0; i < pinned.length; i++) {
-		
+
 		const channelName = pinned[i][0];
 		const node = getChannel(channelName);
 
@@ -169,12 +169,18 @@ function pinFavs(favs){
 				event.preventDefault();
 			}, true);
 
-			let displayName = cloned.getElementsByClassName(CHANNEL_NAME_CLASS)[0].innerHTML;
-			if(!displayName.includes(STAR)){
-				cloned.getElementsByClassName(CHANNEL_NAME_CLASS)[0].innerHTML = addStar(displayName);
+			try {
+				let displayName = cloned.getElementsByClassName(CHANNEL_NAME_CLASS)[0].innerHTML;
+				if(!displayName.includes(STAR)){
+					cloned.getElementsByClassName(CHANNEL_NAME_CLASS)[0].innerHTML = addStar(displayName);
+				}
+
+				starred.add(channelName);
+				navBarList.insertBefore(cloned, navBarList.firstChild);
+			} catch (error) {
+				lastChangeTime = "0";
+				break;
 			}
-			starred.add(channelName);
-			navBarList.insertBefore(cloned, navBarList.firstChild);
 		}
 	}
 }
