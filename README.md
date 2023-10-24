@@ -21,11 +21,4 @@ Go to `about:debugging#/runtime/this-firefox` and load as temporary add-on.
 
 ### Libraries
 
-[DOMPurify 2.0.17](https://github.com/cure53/DOMPurify/blob/2.0.17/dist/purify.min.js) to sanitize HTML inputs.
-
-## Todo
-
-- [x] Reduce cpu cycles
-- [x] Allow import/export list of channel names
-- [ ] Style options page
-- [ ] Port to Chrome
+[DOMPurify](https://github.com/cure53/DOMPurify) is used to sanitize HTML inputs.
