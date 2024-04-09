@@ -49,7 +49,7 @@ function main(){
 function start(){
 	init();
 	starred.clear();
-	expand(navBarList, showMoreBtn);
+	expand(navBarList, showMoreBtn, 0, 0);
 	if (observer !== null) {
 		observer.disconnect();
 	}
@@ -207,36 +207,29 @@ function isChannelLive(channelName){
 	const href = "a[href='/" + channelName + "']";
 	const els = document.querySelectorAll(href);
 
+    // Reruns are deprecated (?)
 	// Channel is rerun
-	if(els[0].childNodes[1].childNodes[1].childNodes[0].childNodes[0].className === RERUN_CLASS){
-		return false;
-	}	
+	// if(els[0].childNodes[1].childNodes[1].childNodes[0].childNodes[0].className === RERUN_CLASS){
+	// 	return false;
+	// }
 	
 	// Channel is live
 	return true;
 }
 
-
 /* Expands the navigation bar to show every live channel. */
-function expand(lst, btn){
-	// Loop will in worst case break after expanding every following channel or 20 iterations
-	const maximumLoops = 20;
-	let curLoop = 0;
-	let prevLiveCount = 0; // When this no longer increases, every live channel has been found
+function expand(lst, btn, prevLiveCount, count) {
 
-	while(true){
-		curLoop++;
-		const res = getAllLive(lst);
-		const numLiveChannels = Object.keys(res).length;	
+    const res = getAllLive(lst);
+    const numLiveChannels = Object.keys(res).length;
 
-		if(numLiveChannels === prevLiveCount || curLoop === maximumLoops){
-			break;
-		}
-		btn.click();
-		prevLiveCount = numLiveChannels;
-	}	
+    if (numLiveChannels === prevLiveCount || count === 20) {
+        return;
+    }
+
+    btn.click();
+    setTimeout(expand, 400, lst, btn, numLiveChannels, count + 1)
 }
-
 
 /* Gets a dictionary of every live channel. Key=channel name, value=view count. */
 function getAllLive(navBarList){
