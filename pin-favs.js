@@ -1,7 +1,7 @@
 const OBSERVER_CLASS = "side-nav";
 const CHANNEL_NAME_CLASS = "CoreText-sc-1txzju1-0 fdYGpZ HcPqQ InjectLayout-sc-1i43xsx-0";
 const NAVBAR_LIST_CLASS = "InjectLayout-sc-1i43xsx-0 hWukFy tw-transition-group";
-const SHOW_MORE_BTN_CLASS = "ScCoreLink-sc-16kq0mq-0 jNkQyB tw-link";
+const SHOW_MORE_BTN_CLASS = "ScCoreLink-sc-16kq0mq-0 VzRGo tw-link";
 const RERUN_CLASS = "ScFigure-sc-1j5mt50-0 laJGEQ tw-svg";
 const STAR = '⭐';               // Emoji for a star to be displayed next to a pinned channel
 let navBarList = null;          // Followed channels navigation bar where each child is a channel
@@ -174,6 +174,9 @@ function pinFavs(favs){
 				if(!displayName.includes(STAR)){
 					cloned.getElementsByClassName(CHANNEL_NAME_CLASS)[0].innerHTML = addStar(displayName);
 				}
+
+				// Force node to stay in place
+				cloned.style.setProperty('transform', 'translate3d(0px, 0px, 0px)', '');
 
 				starred.add(channelName);
 				navBarList.insertBefore(cloned, navBarList.firstChild);
